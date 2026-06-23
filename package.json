@@ -1,0 +1,13 @@
+{
+  "name": "artmath",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Estúdio de Arte Algorítmica Modular",
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  }
+}

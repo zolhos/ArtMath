@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estúdio de Arte Algorítmica</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons (para ícones vetoriais modernos) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Fontes do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b0f19;
+    }
+    .monospace {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Estilização fina do scroll */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="text-slate-200 overflow-hidden h-screen flex flex-col">
+
+  <!-- Header Premium -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-gradient-to-tr from-fuchsia-500 via-violet-500 to-cyan-500 rounded-xl shadow-lg shadow-indigo-500/20 animate-pulse">
+        <i data-lucide="palette" class="w-6 h-6 text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+          Estúdio de Arte Algorítmica
+        </h1>
+        <p class="text-xs text-slate-400 font-medium">Motor de Geração Matemática Iterativo (HTML5 Canvas)</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <button id="btnMutate" class="flex items-center space-x-2 px-3 py-1.5 bg-slate-900 border border-slate-700 hover:border-fuchsia-500 rounded-lg text-xs font-medium transition-all group">
+        <i data-lucide="sparkles" class="w-4 h-4 text-fuchsia-400 group-hover:rotate-12 transition-transform"></i>
+        <span>Mutar Variáveis</span>
+      </button>
+      <button id="btnExport" class="flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 rounded-lg text-xs font-semibold shadow-lg shadow-indigo-500/15 transition-all">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Exportar Render (.PNG)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Área de Trabalho Principal -->
+  <main class="flex-1 flex overflow-hidden relative">
+    
+    <!-- Canvas de Renderização (Esticado para ocupar o espaço disponível) -->
+    <div class="flex-1 relative bg-slate-950 flex items-center justify-center overflow-hidden">
+      <canvas id="artCanvas" class="w-full h-full cursor-crosshair transition-all duration-300"></canvas>
+      
+      <!-- Indicador Flutuante no Topo Esquerdo do Canvas -->
+      <div class="absolute top-4 left-4 bg-slate-950/70 border border-slate-800/80 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center space-x-2 pointer-events-none">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="text-xs monospace text-slate-300 font-medium" id="txtFps">Calculando FPS...</span>
+      </div>
+
+      <!-- Notificação Toast Customizada -->
+      <div id="toastNotification" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-indigo-500/50 backdrop-blur-md px-4 py-2.5 rounded-xl flex items-center space-x-2.5 opacity-0 pointer-events-none translate-y-2 transition-all duration-300 shadow-2xl shadow-indigo-505/10">
+        <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i>
+        <span class="text-xs font-medium text-slate-100" id="toastMessage">Parâmetros mutados com sucesso!</span>
+      </div>
+    </div>
+
+    <!-- Painel de Controles Lateral (Glassmorphism de alta fidelidade) -->
+    <aside id="sidebar" class="w-96 border-l border-slate-800 bg-slate-950/95 backdrop-blur-lg flex flex-col h-full z-10 transition-transform duration-300">
+      
+      <!-- Abas de Navegação de Preset Artístico -->
+      <div class="p-4 border-b border-slate-800">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Preset Algorítmico</label>
+        <div class="grid grid-cols-2 gap-2" id="presetSelector">
+          <button data-preset="flowfield" class="preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-indigo-950/20 border-indigo-500/40 text-indigo-300 transition-all font-medium text-xs">
+            <i data-lucide="wind" class="w-4 h-4"></i>
+            <span>Vector Field</span>
+          </button>
+          <button data-preset="attractor" class="preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 transition-all font-medium text-xs">
+            <i data-lucide="orbit" class="w-4 h-4"></i>
+            <span>Atrator Clifford</span>
+          </button>
+          <button data-preset="geometry" class="preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 transition-all font-medium text-xs">
+            <i data-lucide="snowflake" class="w-4 h-4"></i>
+            <span>Harmonia Circular</span>
+          </button>
+          <button data-preset="fractaltree" class="preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 transition-all font-medium text-xs">
+            <i data-lucide="git-branch" class="w-4 h-4"></i>
+            <span>Árvore Fractal</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sessão Dinâmica de Controles Baseados na Simulação -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+        
+        <!-- Controles Gerais do Motor -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800/60 pb-1">Configurações Gerais</h3>
+          
+          <!-- Seleção de Paleta -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs text-slate-300">Paleta Cromática</span>
+              <span id="paletaName" class="text-[10px] monospace text-indigo-400">Neon Cyberpunk</span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5" id="paletteList">
+              <!-- Injetado dinamicamente via JS -->
+            </div>
+          </div>
+
+          <!-- Slider: Intensidade/Velocidade -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="slideSpeed" class="text-xs text-slate-300">Velocidade de Atualização</label>
+              <span id="valSpeed" class="text-[10px] monospace text-slate-400">1.0x</span>
+            </div>
+            <input type="range" id="slideSpeed" min="0" max="3" step="0.1" value="1" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500">
+          </div>
+
+          <!-- Opacidade / Comprimento de Rastro -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label id="lblOpacity" for="slideOpacity" class="text-xs text-slate-300">Opacidade do Traço</label>
+              <span id="valOpacity" class="text-[10px] monospace text-slate-400">0.15</span>
+            </div>
+            <input type="range" id="slideOpacity" min="0.01" max="1" step="0.01" value="0.15" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500">
+          </div>
+
+          <!-- Modos de Render -->
+          <div class="pt-1.5 space-y-2">
+            <label class="flex items-center space-x-2.5 cursor-pointer text-xs text-slate-300 select-none">
+              <input type="checkbox" id="checkAdditive" checked class="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-0 bg-slate-900">
+              <span>Mistura de Cor Aditiva (Glow Effect)</span>
+            </label>
+            <label class="flex items-center space-x-2.5 cursor-pointer text-xs text-slate-300 select-none">
+              <input type="checkbox" id="checkContinuous" class="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-0 bg-slate-900">
+              <span>Acumular Rastro Infinito (Não limpar canvas)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Controles Específicos do Algoritmo Ativo -->
+        <div id="presetControlsContainer" class="space-y-4">
+          <!-- Injetado dinamicamente dependendo da aba ativa -->
+        </div>
+
+      </div>
+
+      <!-- Fórmula Matemática e Informações do Algoritmo -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950">
+        <div class="flex items-center space-x-1.5 mb-2">
+          <i data-lucide="binary" class="w-4 h-4 text-fuchsia-400"></i>
+          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Matemática Ativa</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 monospace text-[11px] leading-relaxed text-slate-400" id="mathDescription">
+          <!-- Descrição e fórmulas do algoritmo ativo -->
+        </div>
+        
+        <!-- Painel de Execução/Simulação -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <button id="btnPause" class="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors">
+            <i id="iconPause" data-lucide="pause" class="w-4 h-4 text-slate-300"></i>
+            <span class="text-[9px] mt-1 font-medium text-slate-400 uppercase tracking-wider">Pausar</span>
+          </button>
+          <button id="btnStep" class="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors">
+            <i data-lucide="skip-forward" class="w-4 h-4 text-slate-300"></i>
+            <span class="text-[9px] mt-1 font-medium text-slate-400 uppercase tracking-wider">Passo</span>
+          </button>
+          <button id="btnRestart" class="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-300"></i>
+            <span class="text-[9px] mt-1 font-medium text-slate-400 uppercase tracking-wider">Reiniciar</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Script Principal da Skill e Geração Algorítmica -->
+  <script>
+    // Inicialização do Lucide Icons
+    lucide.createIcons();
+
+    // Paletas de Cores Procedurais do Estúdio
+    const PALETTES = {
+      cyberpunk: { name: 'Neon Cyberpunk', colors: ['#ff007f', '#7b2cbf', '#3a0ca3', '#4361ee', '#4cc9f0'] },
+      sunset: { name: 'Sunset Aura', colors: ['#ff9f1c', '#ffbf69', '#f3c68f', '#2ec4b6', '#011627'] },
+      matrix: { name: 'Digital Matrix', colors: ['#39ff14', '#00ff41', '#008f11', '#003b00', '#ffffff'] },
+      cosmic: { name: 'Nebula Profunda', colors: ['#ec38bc', '#7303c0', '#03001e', '#fdeff9', '#05c3de'] },
+      amber: { name: 'Ouro Mineral', colors: ['#f4a261', '#e9c46a', '#e76f51', '#2a9d8f', '#264653'] },
+      classic: { name: 'Minimalista Clássico', colors: ['#ffffff', '#a8a29e', '#78716c', '#44403c', '#1c1917'] }
+    };
+
+    // Definição do Estado Global de Arte Algorítmica
+    const state = {
+      activePreset: 'flowfield', // flowfield, attractor, geometry, fractaltree
+      paletteKey: 'cyberpunk',
+      speed: 1.0,
+      opacity: 0.15,
+      additive: true,
+      continuous: false,
+      isPaused: false,
+      time: 0,
+      
+      // Parâmetros para Vector Field
+      flowfield: {
+        density: 1800,
+        curl: 3.5,
+        scale: 0.003,
+        stepSize: 2.2,
+        interact: 'attract' // attract, repel, none
+      },
+      // Parâmetros para Clifford Attractor
+      attractor: {
+        a: -1.4,
+        b: 1.6,
+        c: 1.0,
+        d: 0.7,
+        scale: 180,
+        iterations: 6000
+      },
+      // Parâmetros para Harmônica Sagrada
+      geometry: {
+        petals: 7,
+        harmony: 3.2,
+        speedMultiplier: 0.8,
+        complexity: 120,
+        morph: true
+      },
+      // Parâmetros para Árvore Fractal
+      fractaltree: {
+        depth: 8,
+        angle: 25,
+        decay: 0.78,
+        windStrength: 0.05,
+        organic: true
+      }
+    };
+
+    // Seletores DOM Úteis
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    const txtFps = document.getElementById('txtFps');
+    const btnPause = document.getElementById('btnPause');
+    const iconPause = document.getElementById('iconPause');
+    const btnStep = document.getElementById('btnStep');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnMutate = document.getElementById('btnMutate');
+    const btnExport = document.getElementById('btnExport');
+    const slideSpeed = document.getElementById('slideSpeed');
+    const valSpeed = document.getElementById('valSpeed');
+    const slideOpacity = document.getElementById('slideOpacity');
+    const valOpacity = document.getElementById('valOpacity');
+    const checkAdditive = document.getElementById('checkAdditive');
+    const checkContinuous = document.getElementById('checkContinuous');
+    const presetSelector = document.getElementById('presetSelector');
+    const presetControlsContainer = document.getElementById('presetControlsContainer');
+    const mathDescription = document.getElementById('mathDescription');
+    const toastNotification = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+
+    // Variáveis do loop e interações
+    let animationId = null;
+    let lastTime = 0;
+    let frameCount = 0;
+    let mouse = { x: 0, y: 0, isPressed: false, isOver: false };
+    let flowParticles = [];
+
+    // Ajustar o tamanho do Canvas para Resolução Nativa da Tela (HiDPI / Retina)
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      
+      // Reinicializa estruturas dependentes de resolução
+      if (state.activePreset === 'flowfield') {
+        initFlowField();
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // Sistema de Paletas Cromáticas Interativo
+    function renderPaletteUI() {
+      const pList = document.getElementById('paletteList');
+      pList.innerHTML = '';
+      
+      Object.keys(PALETTES).forEach(key => {
+        const pal = PALETTES[key];
+        const btn = document.createElement('button');
+        btn.className = `flex flex-col space-y-1 p-1.5 rounded-lg border text-left transition-all ${
+          state.paletteKey === key ? 'border-fuchsia-500 bg-fuchsia-950/10' : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'
+        }`;
+        
+        // Renderiza bolinhas de cores da paleta
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'flex space-x-0.5';
+        pal.colors.forEach(col => {
+          const dot = document.createElement('span');
+          dot.className = 'w-2 h-2 rounded-full inline-block';
+          dot.style.backgroundColor = col;
+          dotsContainer.appendChild(dot);
+        });
+        
+        btn.appendChild(dotsContainer);
+        btn.addEventListener('click', () => {
+          state.paletteKey = key;
+          document.getElementById('paletaName').innerText = pal.name;
+          renderPaletteUI();
+          triggerToast('Paleta alterada para: ' + pal.name);
+          if (state.activePreset === 'flowfield') resetFlowFieldParticles();
+        });
+        
+        pList.appendChild(btn);
+      });
+      document.getElementById('paletaName').innerText = PALETTES[state.paletteKey].name;
+    }
+
+    // Retorna cor interpolada de acordo com o gradiente da paleta ativa
+    function getColorFromPalette(value) {
+      const palette = PALETTES[state.paletteKey].colors;
+      const len = palette.length;
+      const position = value * (len - 1);
+      const index = Math.floor(position);
+      const frac = position - index;
+      
+      if (index >= len - 1) return palette[len - 1];
+      
+      return lerpColor(palette[index], palette[index + 1], frac);
+    }
+
+    // Helper de Interpolação Linear de Hexadecimal
+    function lerpColor(a, b, amount) {
+      const ah = parseInt(a.replace(/#/g, ''), 16),
+            ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff,
+            bh = parseInt(b.replace(/#/g, ''), 16),
+            br = bh >> 16, bg = (bh >> 8) & 0xff, bb = bh & 0xff,
+            rr = ar + amount * (br - ar),
+            rg = ag + amount * (bg - ag),
+            rb = ab + amount * (bb - ab);
+      return `rgb(${Math.round(rr)}, ${Math.round(rg)}, ${Math.round(rb)})`;
+    }
+
+    // Notificações em Toast Premium
+    function triggerToast(message) {
+      toastMessage.innerText = message;
+      toastNotification.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+      toastNotification.classList.add('opacity-100', 'translate-y-0');
+      
+      setTimeout(() => {
+        toastNotification.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+        toastNotification.classList.remove('opacity-100', 'translate-y-0');
+      }, 2500);
+    }
+
+    // Descrição Matemática Dinâmica de Cada Algoritmo
+    const PRESET_INFO = {
+      flowfield: {
+        math: `F(x, y) = [cos(θ), sin(θ)]\nθ = sin(x * f) * cos(y * f) * curl + cos(time)\nVelocidade: Particle.pos += F(x, y) * Speed`,
+        desc: "Um campo de fluxo vetorial contínuo onde partículas flutuam sobre um mapa de direções trigonométricas complexas que variam harmonicamente ao longo do tempo."
+      },
+      attractor: {
+        math: `x[n+1] = sin(a * y) + c * cos(a * x)\ny[n+1] = sin(b * x) + d * cos(b * y)`,
+        desc: "Uma órbita caótica que resolve equações diferenciais iteradas recursivamente. O caos determinístico gera complexas estruturas espirais ou nébulas orbitais."
+      },
+      geometry: {
+        math: `r = baseRadius + sin(θ * petals) * scale\nx = r * cos(θ + time), y = r * sin(θ + time)`,
+        desc: "Geometria sagrada interativa baseada em polares e ressonância trigonométrica circular. O cursor altera dinamicamente as proporções de pétalas e harmônicas."
+      },
+      fractaltree: {
+        math: `Branch(len) = Rotate(L) + Branch(len * decay)\nRotate(R) + Branch(len * decay)\nwind = sin(time) * force`,
+        desc: "Estruturação recursiva natural imitando árvores biológicas. O vento do sistema interage através de oscilações harmônicas de física de cabo leve."
+      }
+    };
+
+    function updateMathPanel() {
+      const info = PRESET_INFO[state.activePreset];
+      mathDescription.innerHTML = `
+        <div class="text-fuchsia-400 font-bold mb-1 border-b border-slate-800 pb-0.5">${state.activePreset.toUpperCase()} EQUATIONS:</div>
+        <pre class="bg-slate-950 p-2 rounded mb-2 overflow-x-auto text-[10px] text-emerald-400">${info.math}</pre>
+        <p class="text-slate-400 font-sans leading-relaxed text-[11px]">${info.desc}</p>
+      `;
+    }
+
+    // Construtor dos Controles Dinâmicos baseados no Preset
+    function buildPresetUIControls() {
+      presetControlsContainer.innerHTML = '';
+      
+      const config = state[state.activePreset];
+      const items = [];
+
+      if (state.activePreset === 'flowfield') {
+        items.push({
+          id: 'density', label: 'Densidade de Partículas', min: 100, max: 4000, step: 100, value: config.density,
+          oninput: (v) => { config.density = v; initFlowField(); }
+        }, {
+          id: 'curl', label: 'Distorção / Curl', min: 0.5, max: 10, step: 0.1, value: config.curl,
+          oninput: (v) => config.curl = v
+        }, {
+          id: 'scale', label: 'Frequência do Campo', min: 0.0005, max: 0.015, step: 0.0001, value: config.scale,
+          oninput: (v) => config.scale = v
+        });
+      } else if (state.activePreset === 'attractor') {
+        items.push({
+          id: 'a', label: 'Fator Clifford a', min: -3, max: 3, step: 0.01, value: config.a,
+          oninput: (v) => config.a = v
+        }, {
+          id: 'b', label: 'Fator Clifford b', min: -3, max: 3, step: 0.01, value: config.b,
+          oninput: (v) => config.b = v
+        }, {
+          id: 'c', label: 'Fator Clifford c', min: -3, max: 3, step: 0.01, value: config.c,
+          oninput: (v) => config.c = v
+        }, {
+          id: 'd', label: 'Fator Clifford d', min: -3, max: 3, step: 0.01, value: config.d,
+          oninput: (v) => config.d = v
+        }, {
+          id: 'iterations', label: 'Amostras de Órbita', min: 1000, max: 15000, step: 500, value: config.iterations,
+          oninput: (v) => config.iterations = v
+        });
+      } else if (state.activePreset === 'geometry') {
+        items.push({
+          id: 'petals', label: 'Número de Lóbulos / Pétalas', min: 1, max: 24, step: 1, value: config.petals,
+          oninput: (v) => config.petals = v
+        }, {
+          id: 'harmony', label: 'Modulação Harmônica', min: 0.5, max: 12, step: 0.1, value: config.harmony,
+          oninput: (v) => config.harmony = v
+        }, {
+          id: 'complexity', label: 'Complexidade de Linhas', min: 10, max: 500, step: 5, value: config.complexity,
+          oninput: (v) => config.complexity = v
+        });
+      } else if (state.activePreset === 'fractaltree') {
+        items.push({
+          id: 'depth', label: 'Gerações Recursivas (Profundidade)', min: 4, max: 11, step: 1, value: config.depth,
+          oninput: (v) => config.depth = v
+        }, {
+          id: 'angle', label: 'Ângulo de Dispersão (Graus)', min: 5, max: 90, step: 1, value: config.angle,
+          oninput: (v) => config.angle = v
+        }, {
+          id: 'decay', label: 'Decaimento de Comprimento', min: 0.5, max: 0.85, step: 0.01, value: config.decay,
+          oninput: (v) => config.decay = v
+        }, {
+          id: 'windStrength', label: 'Elasticidade de Balanço', min: 0.01, max: 0.3, step: 0.01, value: config.windStrength,
+          oninput: (v) => config.windStrength = v
+        });
+      }
+
+      // Adiciona o cabeçalho dinâmico para os controles adicionais
+      const h3 = document.createElement('h3');
+      h3.className = "text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800/60 pb-1";
+      h3.innerText = `Variáveis do ${state.activePreset}`;
+      presetControlsContainer.appendChild(h3);
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'space-y-1';
+        
+        const labelRow = document.createElement('div');
+        labelRow.className = 'flex justify-between items-center';
+        
+        const label = document.createElement('label');
+        label.className = 'text-xs text-slate-300';
+        label.innerText = item.label;
+        
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'text-[10px] monospace text-indigo-400';
+        valueSpan.innerText = item.value;
+        
+        labelRow.appendChild(label);
+        labelRow.appendChild(valueSpan);
+        div.appendChild(labelRow);
+        
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = item.min;
+        slider.max = item.max;
+        slider.step = item.step;
+        slider.value = item.value;
+        slider.className = 'w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500';
+        
+        slider.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          valueSpan.innerText = val;
+          item.oninput(val);
+        });
+        
+        div.appendChild(slider);
+        presetControlsContainer.appendChild(div);
+      });
+    }
+
+    // Trata seleção de presets
+    presetSelector.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      
+      const presetName = btn.getAttribute('data-preset');
+      
+      // Limpar estados ativos
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.className = 'preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 transition-all font-medium text-xs';
+      });
+      
+      // Ativar atual
+      btn.className = 'preset-btn flex items-center space-x-2 p-2.5 rounded-lg border bg-indigo-950/20 border-indigo-500/40 text-indigo-300 transition-all font-medium text-xs';
+      
+      state.activePreset = presetName;
+      
+      // Ajuste automático de opacidades sugeridas para cada tipo de arte para ficar esteticamente perfeito
+      if (presetName === 'attractor') {
+        state.opacity = 0.05;
+        state.continuous = true;
+      } else if (presetName === 'flowfield') {
+        state.opacity = 0.12;
+        state.continuous = false;
+      } else {
+        state.opacity = 0.6;
+        state.continuous = false;
+      }
+
+      slideOpacity.value = state.opacity;
+      valOpacity.innerText = state.opacity;
+      checkContinuous.checked = state.continuous;
+
+      buildPresetUIControls();
+      updateMathPanel();
+      triggerToast(`Algoritmo trocado para: ${presetName.toUpperCase()}`);
+      
+      if (presetName === 'flowfield') {
+        initFlowField();
+      } else {
+        ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+      }
+    });
+
+    // Eventos Gerais de Input
+    slideSpeed.addEventListener('input', (e) => {
+      state.speed = parseFloat(e.target.value);
+      valSpeed.innerText = state.speed.toFixed(1) + 'x';
+    });
+
+    slideOpacity.addEventListener('input', (e) => {
+      state.opacity = parseFloat(e.target.value);
+      valOpacity.innerText = state.opacity;
+    });
+
+    checkAdditive.addEventListener('change', (e) => {
+      state.additive = e.target.checked;
+    });
+
+    checkContinuous.addEventListener('change', (e) => {
+      state.continuous = e.target.checked;
+    });
+
+    // ----------------- IMPLEMENTAÇÕES DOS ALGORITMOS DE ARTE -----------------
+
+    // 1. VETOR FLOW FIELD (Partículas que passeiam guiadas por ruído senoidal)
+    function initFlowField() {
+      const rect = canvas.getBoundingClientRect();
+      flowParticles = [];
+      for (let i = 0; i < state.flowfield.density; i++) {
+        flowParticles.push({
+          x: Math.random() * rect.width,
+          y: Math.random() * rect.height,
+          vx: 0,
+          vy: 0,
+          life: Math.random() * 200 + 100,
+          maxLife: 300,
+          colValue: Math.random()
+        });
+      }
+    }
+
+    function resetFlowFieldParticles() {
+      flowParticles.forEach(p => {
+        p.x = Math.random() * (canvas.width / window.devicePixelRatio);
+        p.y = Math.random() * (canvas.height / window.devicePixelRatio);
+        p.life = Math.random() * 200 + 100;
+      });
+    }
+
+    function updateAndDrawFlowField() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      if (!state.continuous) {
+        // Rastro suave
+        ctx.fillStyle = `rgba(11, 15, 25, ${0.035 * state.speed})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      ctx.lineWidth = 1.2;
+      
+      // Define mistura aditiva ou normal
+      ctx.globalCompositeOperation = state.additive ? 'screen' : 'source-over';
+
+      flowParticles.forEach(p => {
+        // Ângulo derivado de forças matemáticas trigonométricas (Simulando ruído de Perlin)
+        const fx = p.x * state.flowfield.scale;
+        const fy = p.y * state.flowfield.scale;
+        
+        let angle = Math.sin(fx * state.flowfield.curl) * Math.cos(fy * state.flowfield.curl) * 6.28;
+        angle += Math.sin(state.time * 0.015) * 1.5; // Deforma o campo no tempo
+
+        // Interação com o Mouse
+        if (mouse.isOver && state.flowfield.interact !== 'none') {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 180) {
+            const mouseAngle = Math.atan2(dy, dx);
+            if (state.flowfield.interact === 'attract') {
+              angle = angle * 0.4 + mouseAngle * 0.6;
+            } else {
+              angle = angle * 0.4 + (mouseAngle + Math.PI) * 0.6;
+            }
+          }
+        }
+
+        // Calcula velocidade
+        p.vx = Math.cos(angle) * state.flowfield.stepSize * state.speed;
+        p.vy = Math.sin(angle) * state.flowfield.stepSize * state.speed;
+
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = getColorFromPalette(p.colValue);
+        ctx.globalAlpha = state.opacity * (p.life / p.maxLife);
+        ctx.stroke();
+
+        p.life -= state.speed;
+
+        // Reciclar partícula sem energia ou fora do canvas
+        if (p.life <= 0 || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+          p.x = Math.random() * width;
+          p.y = Math.random() * height;
+          p.life = Math.random() * 200 + 100;
+          p.vx = 0;
+          p.vy = 0;
+        }
+      });
+
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+
+    // 2. STRANGE ATTRACTORS (Órbitas caóticas de Clifford)
+    let attractorPoints = [];
+    function updateAndDrawAttractor() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      if (!state.continuous) {
+        ctx.fillStyle = '#0b0f19';
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      ctx.globalCompositeOperation = state.additive ? 'screen' : 'source-over';
+      ctx.globalAlpha = state.opacity;
+
+      // Semente inicial
+      let x = Math.sin(state.time * 0.005);
+      let y = Math.cos(state.time * 0.003);
+
+      const a = state.attractor.a + Math.sin(state.time * 0.001) * 0.1 * state.speed;
+      const b = state.attractor.b;
+      const c = state.attractor.c;
+      const d = state.attractor.d;
+
+      ctx.lineWidth = 1;
+
+      // Desenha blocos de amostras por frames para desempenho ótimo
+      for (let i = 0; i < state.attractor.iterations; i++) {
+        // Equações clássicas do Clifford Attractor
+        const xNext = Math.sin(a * y) + c * Math.cos(a * x);
+        const yNext = Math.sin(b * x) + d * Math.cos(b * y);
+
+        x = xNext;
+        y = yNext;
+
+        // Centralizar e escalonar pontos no centro do canvas
+        const px = width / 2 + x * state.attractor.scale;
+        const py = height / 2 + y * state.attractor.scale;
+
+        // Determina cores baseado no raio de escape
+        const radiusVal = Math.sqrt(x*x + y*y) / 2.5;
+        ctx.fillStyle = getColorFromPalette(Math.min(1, Math.max(0, radiusVal)));
+
+        ctx.fillRect(px, py, 1.2, 1.2);
+      }
+
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+
+    // 3. SACRED GEOMETRY (Mandalas interativas trigonométricas)
+    function updateAndDrawGeometry() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = state.additive ? 'screen' : 'source-over';
+      ctx.globalAlpha = state.opacity;
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const maxRadius = Math.min(width, height) * 0.42;
+
+      // O cursor modifica as pétalas e velocidade
+      const petals = state.geometry.petals + (mouse.isOver ? (mouse.x / width) * 8 - 4 : 0);
+      const harmony = state.geometry.harmony + (mouse.isOver ? (mouse.y / height) * 6 - 3 : 0);
+
+      ctx.lineWidth = 1.5;
+
+      for (let i = 0; i < state.geometry.complexity; i++) {
+        const factor = i / state.geometry.complexity;
+        const angleOffset = factor * Math.PI * 2 * harmony;
+        
+        ctx.beginPath();
+        
+        for (let j = 0; j <= 360; j += 4) {
+          const theta = (j * Math.PI) / 180;
+          
+          // Equações polares moduladas com movimento temporal
+          const wave = Math.sin(theta * petals + state.time * 0.05) * 60;
+          const r = factor * maxRadius + wave * Math.cos(state.time * 0.01 + angleOffset);
+          
+          const px = centerX + Math.cos(theta + angleOffset) * r;
+          const py = centerY + Math.sin(theta + angleOffset) * r;
+
+          if (j === 0) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        
+        ctx.closePath();
+        ctx.strokeStyle = getColorFromPalette(factor);
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+
+    // 4. L-SYSTEM FRACTAL TREE (Árvores biológicas sob o efeito do vento)
+    function updateAndDrawFractalTree() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = state.opacity;
+
+      const rootX = width / 2;
+      const rootY = height * 0.88;
+      const startLength = height * 0.22;
+
+      // Vento oscila harmonicamente como uma mola com ruído senoidal
+      const windAngle = Math.sin(state.time * 0.03) * state.fractaltree.windStrength;
+
+      // Inicia a recursividade de desenho da árvore fractal
+      drawBranch(rootX, rootY, startLength, -Math.PI / 2, state.fractaltree.depth, windAngle);
+
+      ctx.globalAlpha = 1.0;
+    }
+
+    function drawBranch(x, y, len, angle, depth, wind) {
+      if (depth === 0) return;
+
+      const endX = x + Math.cos(angle) * len;
+      const endY = y + Math.sin(angle) * len;
+
+      // Desenha o galho atual com gradações de expessura e cor
+      ctx.lineWidth = depth * 1.5;
+      ctx.strokeStyle = getColorFromPalette(1 - depth / state.fractaltree.depth);
+      
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // Próximas ramificações
+      const nextLen = len * state.fractaltree.decay;
+      const radAngle = (state.fractaltree.angle * Math.PI) / 180;
+
+      // Adiciona vento cumulativo e aleatoriedade orgânica opcional nos galhos
+      const organicFactor = state.fractaltree.organic ? Math.sin(depth + state.time * 0.01) * 0.05 : 0;
+
+      // Galho Direito
+      drawBranch(
+        endX, endY, 
+        nextLen, 
+        angle + radAngle + wind + organicFactor, 
+        depth - 1, 
+        wind
+      );
+      
+      // Galho Esquerdo
+      drawBranch(
+        endX, endY, 
+        nextLen, 
+        angle - radAngle + wind - organicFactor, 
+        depth - 1, 
+        wind
+      );
+    }
+
+
+    // ----------------- MOTOR PRINCIPAL DE LOOP E EXECUÇÃO -----------------
+
+    function gameLoop(now) {
+      if (state.isPaused) return;
+
+      // Medição de Performance (FPS)
+      if (!lastTime) lastTime = now;
+      const delta = now - lastTime;
+      frameCount++;
+      
+      if (delta >= 1000) {
+        const fps = Math.round((frameCount * 1000) / delta);
+        txtFps.innerText = `${fps} FPS | Res: ${canvas.width}x${canvas.height}`;
+        frameCount = 0;
+        lastTime = now;
+      }
+
+      // Incrementa tempo global escalonado pela velocidade
+      state.time += 1.0 * state.speed;
+
+      // Delega a renderização para o preset selecionado
+      switch (state.activePreset) {
+        case 'flowfield':
+          updateAndDrawFlowField();
+          break;
+        case 'attractor':
+          updateAndDrawAttractor();
+          break;
+        case 'geometry':
+          updateAndDrawGeometry();
+          break;
+        case 'fractaltree':
+          updateAndDrawFractalTree();
+          break;
+      }
+
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // Gerencia o Play / Pause
+    function togglePause() {
+      state.isPaused = !state.isPaused;
+      if (state.isPaused) {
+        cancelAnimationFrame(animationId);
+        iconPause.setAttribute('data-lucide', 'play');
+        btnPause.querySelector('span').innerText = 'Executar';
+        lucide.createIcons();
+      } else {
+        lastTime = 0;
+        animationId = requestAnimationFrame(gameLoop);
+        iconPause.setAttribute('data-lucide', 'pause');
+        btnPause.querySelector('span').innerText = 'Pausar';
+        lucide.createIcons();
+      }
+    }
+
+    btnPause.addEventListener('click', togglePause);
+
+    // Avançar quadro único (Step)
+    btnStep.addEventListener('click', () => {
+      if (!state.isPaused) togglePause();
+      state.time += 1.0 * state.speed;
+      switch (state.activePreset) {
+        case 'flowfield': updateAndDrawFlowField(); break;
+        case 'attractor': updateAndDrawAttractor(); break;
+        case 'geometry': updateAndDrawGeometry(); break;
+        case 'fractaltree': updateAndDrawFractalTree(); break;
+      }
+      triggerToast('Avançado 1 quadro temporal.');
+    });
+
+    // Reinicia simulação limpando a tela
+    btnRestart.addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+      state.time = 0;
+      if (state.activePreset === 'flowfield') initFlowField();
+      triggerToast('Motor de simulação resetado.');
+    });
+
+    // Função de Mutação Aleatória Estética (Surpreende o Usuário)
+    btnMutate.addEventListener('click', () => {
+      const config = state[state.activePreset];
+      
+      if (state.activePreset === 'flowfield') {
+        config.curl = parseFloat((Math.random() * 8 + 1).toFixed(2));
+        config.scale = parseFloat((Math.random() * 0.01 + 0.001).toFixed(4));
+        config.stepSize = parseFloat((Math.random() * 3 + 1).toFixed(1));
+      } else if (state.activePreset === 'attractor') {
+        config.a = parseFloat((Math.random() * 4 - 2).toFixed(2));
+        config.b = parseFloat((Math.random() * 4 - 2).toFixed(2));
+        config.c = parseFloat((Math.random() * 2 - 1).toFixed(2));
+        config.d = parseFloat((Math.random() * 2 - 1).toFixed(2));
+      } else if (state.activePreset === 'geometry') {
+        config.petals = Math.floor(Math.random() * 16 + 2);
+        config.harmony = parseFloat((Math.random() * 8 + 1).toFixed(1));
+        config.complexity = Math.floor(Math.random() * 300 + 40);
+      } else if (state.activePreset === 'fractaltree') {
+        config.depth = Math.floor(Math.random() * 4 + 6); // Entre 6 e 9
+        config.angle = Math.floor(Math.random() * 55 + 15);
+        config.decay = parseFloat((Math.random() * 0.15 + 0.68).toFixed(2));
+      }
+
+      // Sorteia uma nova paleta cromática de forma randômica
+      const keys = Object.keys(PALETTES);
+      state.paletteKey = keys[Math.floor(Math.random() * keys.length)];
+      
+      renderPaletteUI();
+      buildPresetUIControls();
+      updateMathPanel();
+      
+      // Limpa canvas para novas formas estéticas emergirem
+      ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+      if (state.activePreset === 'flowfield') initFlowField();
+      
+      triggerToast('Estética do algoritmo reconfigurada e mutada!');
+    });
+
+    // Exportador de Arte Digital de Alta Definição (.PNG)
+    btnExport.addEventListener('click', () => {
+      // Criamos um canvas temporário sem redimensionamento do CSS para exportar em resolução ultra-fina
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      // Pinta o fundo e copia a imagem
+      tempCtx.fillStyle = '#0b0f19';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(canvas, 0, 0);
+
+      const link = document.createElement('a');
+      link.download = `art_algoritmica_${state.activePreset}_${Date.now()}.png`;
+      link.href = tempCanvas.toDataURL('image/png');
+      link.click();
+      
+      triggerToast('Download da renderização PNG iniciado com sucesso!');
+    });
+
+    // Captura e coordenadas espaciais do Mouse no Canvas
+    function getCanvasMouseCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      // Mapeamento correto de coordenadas lógicas
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      getCanvasMouseCoords(e);
+    });
+
+    canvas.addEventListener('mouseenter', (e) => {
+      mouse.isOver = true;
+      getCanvasMouseCoords(e);
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouse.isOver = false;
+      mouse.isPressed = false;
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Clique esquerdo
+        mouse.isPressed = true;
+        // Mutar Clifford Attractor com clique
+        if (state.activePreset === 'attractor') {
+          state.attractor.a = parseFloat((Math.random() * 4 - 2).toFixed(2));
+          state.attractor.b = parseFloat((Math.random() * 4 - 2).toFixed(2));
+          buildPresetUIControls();
+          triggerToast('Seed do Atrator de Clifford mutado com clique!');
+        }
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      mouse.isPressed = false;
+    });
+
+    // Inicialização de Setup do Estúdio
+    resizeCanvas();
+    renderPaletteUI();
+    buildPresetUIControls();
+    updateMathPanel();
+    
+    // Início imediato do loop de desenho
+    animationId = requestAnimationFrame(gameLoop);
+  </script>
+
+</body>
+</html>

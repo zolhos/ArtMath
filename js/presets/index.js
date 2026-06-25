@@ -5,6 +5,7 @@ import fractaltree from './fractaltree.js';
 import mandala from './mandala.js';
 import lorenz from './lorenz.js';
 import mandelbrot from './mandelbrot.js';
+import moebius from './moebius.js';
 
 export const presets = {
   flowfield,
@@ -13,7 +14,8 @@ export const presets = {
   fractaltree,
   mandala,
   lorenz,
-  mandelbrot
+  mandelbrot,
+  moebius
 };
 
 
